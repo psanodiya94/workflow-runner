@@ -1,0 +1,44 @@
+name: system_check
+version: "1.0"
+description: >
+  Basic system health check — gathers hostname, uptime, disk, memory,
+  CPU, and logged-in users.  Safe to run on any Linux host.
+
+steps:
+  - name: hostname
+    command: hostname -f
+    description: Fully-qualified domain name of the remote host
+
+  - name: os_release
+    command: cat /etc/os-release | grep -E '^(NAME|VERSION)='
+    description: Distribution name and version
+
+  - name: uptime
+    command: uptime -p
+    description: Human-readable uptime
+
+  - name: load_average
+    command: cat /proc/loadavg
+    description: 1 / 5 / 15-minute load averages and running processes
+
+  - name: disk_usage
+    command: df -h / /tmp 2>/dev/null || df -h /
+    description: Disk usage for root and /tmp filesystems
+
+  - name: memory
+    command: free -h
+    description: Total / used / free memory and swap
+
+  - name: cpu_count
+    command: nproc
+    description: Number of available CPUs
+
+  - name: network_interfaces
+    command: ip -brief addr show
+    description: Network interface addresses
+    allow_failure: true
+
+  - name: logged_users
+    command: who
+    description: Currently logged-in users
+    allow_failure: true

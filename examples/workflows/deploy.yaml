@@ -1,0 +1,51 @@
+name: app_deploy
+version: "1.0"
+description: >
+  Standard application deployment workflow: pull code, install dependencies,
+  run migrations, restart the service, and verify it is healthy.
+
+# Base environment — individual steps may override these values.
+environment:
+  APP_DIR: /opt/myapp
+  SERVICE_NAME: myapp
+  PYTHON_BIN: python3
+
+steps:
+  - name: check_user
+    command: whoami && id
+    description: Confirm the user running the deployment
+
+  - name: check_app_dir
+    command: test -d $APP_DIR && echo "OK" || (echo "APP_DIR not found" && exit 1)
+    description: Ensure the application directory exists
+
+  - name: pull_latest
+    command: cd $APP_DIR && git fetch --prune && git pull origin main
+    description: Pull latest code from the main branch
+
+  - name: show_revision
+    command: cd $APP_DIR && git log -1 --oneline
+    description: Display the commit being deployed
+
+  - name: install_deps
+    command: cd $APP_DIR && $PYTHON_BIN -m pip install -q -r requirements.txt
+    description: Install / upgrade Python dependencies
+    timeout: 120.0
+
+  - name: run_migrations
+    command: cd $APP_DIR && $PYTHON_BIN manage.py migrate --noinput
+    description: Apply pending database migrations
+
+  - name: collect_static
+    command: cd $APP_DIR && $PYTHON_BIN manage.py collectstatic --noinput
+    description: Collect static assets
+    allow_failure: true
+
+  - name: restart_service
+    command: sudo systemctl restart $SERVICE_NAME
+    description: Restart the application service
+    confirm_before: true   # Always ask before restarting
+
+  - name: health_check
+    command: sleep 3 && systemctl is-active --quiet $SERVICE_NAME && echo "Service is running"
+    description: Verify the service came back up

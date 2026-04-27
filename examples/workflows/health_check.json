@@ -1,0 +1,31 @@
+{
+  "name": "http_health_check",
+  "version": "1.0",
+  "description": "HTTP and process-level health checks for a running web service.",
+  "steps": [
+    {
+      "name": "http_endpoint",
+      "command": "curl -sf --max-time 5 http://localhost:8080/health && echo 'HTTP OK' || echo 'HTTP FAIL'",
+      "description": "Check the /health HTTP endpoint",
+      "allow_failure": true
+    },
+    {
+      "name": "process_running",
+      "command": "pgrep -x myapp > /dev/null && echo 'RUNNING' || echo 'NOT RUNNING'",
+      "description": "Verify the process is alive",
+      "allow_failure": true
+    },
+    {
+      "name": "open_ports",
+      "command": "ss -tlnp | grep ':8080' || echo 'Port 8080 not listening'",
+      "description": "Check that the service port is bound",
+      "allow_failure": true
+    },
+    {
+      "name": "recent_errors",
+      "command": "journalctl -u myapp --since '5 minutes ago' --no-pager -p err | tail -20",
+      "description": "Show recent ERROR-level log lines",
+      "allow_failure": true
+    }
+  ]
+}

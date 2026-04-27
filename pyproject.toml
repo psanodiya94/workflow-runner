@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "workflow-runner"
+version = "0.1.0"
+description = "Remote command execution tool with interactive shell and workflow automation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["ssh", "remote", "workflow", "devops", "automation"]
+dependencies = [
+    "paramiko>=3.4.0",
+    "rich>=13.7.0",
+    "click>=8.1.7",
+    "pyyaml>=6.0.1",
+    "prompt_toolkit>=3.0.43",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-mock>=3.12.0",
+]
+
+[project.scripts]
+wfr = "workflow_runner.main:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["workflow_runner"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
