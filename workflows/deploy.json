@@ -1,0 +1,32 @@
+{
+  "name": "deploy-app",
+  "description": "Pull latest code and restart the service.",
+  "version": "1",
+  "default_cwd": "/srv/app",
+  "default_timeout": 120,
+  "steps": [
+    {
+      "name": "git-pull",
+      "command": "git pull --ff-only origin main"
+    },
+    {
+      "name": "install-deps",
+      "command": "./scripts/install.sh",
+      "timeout": 300
+    },
+    {
+      "name": "run-migrations",
+      "command": "./scripts/migrate.sh",
+      "on_failure": "prompt"
+    },
+    {
+      "name": "restart-service",
+      "command": "sudo systemctl restart app.service",
+      "confirm": true
+    },
+    {
+      "name": "smoke-test",
+      "command": "curl -fsS http://localhost:8080/health"
+    }
+  ]
+}

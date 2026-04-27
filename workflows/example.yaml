@@ -1,0 +1,47 @@
+# Example workflow.
+#
+# Usage:
+#   workflow-runner workflow workflows/example.yaml --host my.host --user ops -i ~/.ssh/id_ed25519
+#   workflow-runner debug    workflows/example.yaml --local
+#
+# A workflow is an ordered sequence of steps. The engine streams stdout/stderr
+# in real time and stops at the first failure unless on_failure is overridden.
+
+name: system-health-check
+description: |
+  Quick smoke check for a Linux host: report uptime, disk usage, free memory,
+  and the last 20 lines of the kernel log.
+version: "1"
+
+default_timeout: 30
+default_env:
+  LANG: C.UTF-8
+
+steps:
+  - name: uptime
+    description: Show uptime and current load average.
+    command: uptime
+
+  - name: disk-usage
+    description: Print human-readable disk usage of all real filesystems.
+    command: df -hT -x tmpfs -x devtmpfs
+
+  - name: memory
+    description: Memory and swap usage.
+    command: free -h
+
+  - name: top-processes
+    description: 10 hottest processes by CPU.
+    command: ps -eo pid,user,pcpu,pmem,comm --sort=-pcpu | head -n 11
+
+  - name: kernel-log-tail
+    description: Last 20 dmesg lines (skipped on non-root).
+    command: "dmesg | tail -n 20 || echo '(dmesg unavailable)'"
+    on_failure: continue
+    expect_exit_codes: [0, 1]
+
+  - name: cleanup-temp
+    description: Demonstration of a destructive step that requires confirmation.
+    command: rm -rf /tmp/workflow-runner-scratch
+    confirm: true
+    on_failure: continue
