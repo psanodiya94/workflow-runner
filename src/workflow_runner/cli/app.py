@@ -47,7 +47,7 @@ def main(argv: list[str] | None = None) -> int:
     log.info("workflow-runner %s starting", __version__)
 
     try:
-        if args.subcommand in (None, "interactive"):
+        if args.subcommand == "interactive":
             return _run_interactive(args)
         if args.subcommand == "run":
             return _run_oneshot(args)
@@ -55,6 +55,8 @@ def main(argv: list[str] | None = None) -> int:
             return _run_workflow(args)
         if args.subcommand == "debug":
             return _run_debug(args)
+        if args.subcommand == None:
+            parser.print_help()
     except KeyboardInterrupt:
         return 130
     parser.error(f"unknown subcommand: {args.subcommand}")
